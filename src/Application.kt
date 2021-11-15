@@ -12,16 +12,17 @@ import io.ktor.auth.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import java.lang.Exception
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-private var lastUserChannel: Channel<UserInfo> = Channel(Channel.UNLIMITED)
+private var lastUserChannel: Channel<UserInfo> = Channel(Channel.UNLIMITED, BufferOverflow.SUSPEND)
 
 @ExperimentalCoroutinesApi
-@Suppress("unused") // Referenced in application.conf
+@Suppress("unused")
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(io.ktor.websocket.WebSockets) {
@@ -53,7 +54,7 @@ fun Application.module(testing: Boolean = false) {
             println("Tablet connected")
             send(Frame.Text("Hi from server"))
 
-            while (!lastUserChannel.isClosedForSend) {
+            while (true) {
                 try {
                     val value = lastUserChannel.receive()
                     println("Sent -  ${value.userName}")
