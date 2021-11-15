@@ -18,7 +18,7 @@ import java.lang.Exception
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-private var lastUserChannel: Channel<UserInfo> = Channel(Channel.CONFLATED)
+private var lastUserChannel: Channel<UserInfo> = Channel(Channel.UNLIMITED)
 
 @ExperimentalCoroutinesApi
 @Suppress("unused") // Referenced in application.conf
