@@ -17,6 +17,10 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import java.lang.Exception
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.LinkedHashSet
+
 private var lastUserChannel: Channel<UserInfo> = Channel(Channel.CONFLATED)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -50,10 +54,14 @@ fun Application.module(testing: Boolean = false) {
             println("Got -  ${userInfo.userName}")
             lastUserChannel.send(userInfo)
         }
-
+    }
+        routing {
+            val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
         webSocket("/eventAuth") {
             println("Tablet connected")
             send(Frame.Text("Hi from server"))
+            val thisConnection = Connection(this, call.parameters["login"])
+            connections += thisConnection
 
             while (true) {
                 try {
@@ -72,6 +80,13 @@ fun Application.module(testing: Boolean = false) {
     }
 
 
+}
+
+class Connection(val session: DefaultWebSocketSession, userName:String?) {
+    companion object {
+        var lastId = AtomicInteger(0)
+    }
+    val name = if(userName.isNullOrEmpty()) "user${lastId.getAndIncrement()}" else userName
 }
 
 
