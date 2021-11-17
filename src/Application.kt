@@ -54,8 +54,6 @@ fun Application.module(testing: Boolean = false) {
         webSocket("/eventAuth") {
             println("Tablet connected")
             send(Frame.Text("Hi from server"))
-
-            while (true) {
                 try {
                     val value = lastUserChannel.receive()
                     println("Sent -  ${value.userName}")
@@ -64,8 +62,10 @@ fun Application.module(testing: Boolean = false) {
                 catch (e:Exception){
                     println(e.printStackTrace())
                 }
+                finally {
+                    lastUserChannel.close()
+                }
 
-            }
 
         }
 

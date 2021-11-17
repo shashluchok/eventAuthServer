@@ -37,7 +37,7 @@ dependencies {
     implementation "io.ktor:ktor-auth:$ktor_version"
     implementation "io.ktor:ktor-auth-jwt:$ktor_version"
     implementation "io.ktor:ktor-gson:$ktor_version"
-    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+    testImplementation "io.ktor:ktor-server-tests:$ktor_    version"
 }
 
 tasks.create("stage") {
