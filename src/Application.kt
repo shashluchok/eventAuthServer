@@ -17,10 +17,10 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import java.lang.Exception
+private var lastUserChannel: Channel<UserInfo> = Channel(Channel.UNLIMITED, BufferOverflow.SUSPEND)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-private var lastUser:UserInfo? = null
 
 @ExperimentalCoroutinesApi
 @Suppress("unused")
@@ -48,7 +48,7 @@ fun Application.module(testing: Boolean = false) {
             call.respond(HttpStatusCode.OK, message = "done")
             val userInfo = call.receive<UserInfo>()
             println("Got -  ${userInfo.userName}")
-            lastUser = userInfo
+            lastUserChannel.send(userInfo)
         }
 
         webSocket("/eventAuth") {
@@ -57,11 +57,9 @@ fun Application.module(testing: Boolean = false) {
 
             while (true) {
                 try {
-                    if(lastUser!=null) {
-                        println("Sent -  ${lastUser?.userName}")
-                        send(Frame.Text(Gson().toJson(lastUser)))
-                        lastUser = null
-                    }
+                    val value = lastUserChannel.receive()
+                    println("Sent -  ${value.userName}")
+                    send(Frame.Text(Gson().toJson(value)))
                 }
                 catch (e:Exception){
                     println(e.printStackTrace())
