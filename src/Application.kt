@@ -21,7 +21,6 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.LinkedHashSet
 
-private var lastUserChannel: Channel<UserInfo> = Channel(Channel.CONFLATED)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -46,27 +45,25 @@ fun Application.module(testing: Boolean = false) {
 
         }
     }
-    val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
     routing {
+        val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
+
         post("/auth") {
             call.respond(HttpStatusCode.OK, message = "done")
             val userInfo = call.receive<UserInfo>()
             println("Got -  ${userInfo.userName}")
-//            lastUserChannel.send(userInfo)
+            println("Подключено планшетов: ${connections.size}")
             connections.forEach {
+                println("Sent -  ${userInfo.userName}")
                 it.session.send(Frame.Text(Gson().toJson(userInfo)))
             }
         }
-    }
-    routing {
 
-        webSocket("/eventAuth") {
+        webSocket("/eventAuth{tabletName}") {
 
             println("Tablet connected")
             val thisConnection = Connection(this, call.parameters["tabletName"])
             connections += thisConnection
-            val value = lastUserChannel.receive()
-            println("Sent -  ${value.userName}")
 
             try {
                 for (frame in incoming) {
