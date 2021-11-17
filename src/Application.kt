@@ -59,6 +59,8 @@ fun Application.module(testing: Boolean = false) {
             val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
         webSocket("/eventAuth") {
 
+
+            println("Tablet connected")
                 val thisConnection = Connection(this, call.parameters["tabletName"])
                 connections += thisConnection
                 try {
