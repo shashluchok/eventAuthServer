@@ -17,7 +17,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import java.lang.Exception
-private var lastUserChannel: Channel<UserInfo> = Channel(Channel.UNLIMITED, BufferOverflow.SUSPEND)
+private var lastUserChannel: Channel<UserInfo> = Channel(Channel.CONFLATED)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
