@@ -46,38 +46,38 @@ fun Application.module(testing: Boolean = false) {
 
         }
     }
-
+    val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
     routing {
         post("/auth") {
             call.respond(HttpStatusCode.OK, message = "done")
             val userInfo = call.receive<UserInfo>()
             println("Got -  ${userInfo.userName}")
-            lastUserChannel.send(userInfo)
+//            lastUserChannel.send(userInfo)
+            connections.forEach {
+                it.session.send(Frame.Text(Gson().toJson(userInfo)))
+            }
         }
     }
-        routing {
-            val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
+    routing {
+
         webSocket("/eventAuth") {
 
-
             println("Tablet connected")
-                val thisConnection = Connection(this, call.parameters["tabletName"])
-                connections += thisConnection
-                try {
-                    for (frame in incoming) {
-                        frame as? Frame.Text ?: continue
-                        val value = lastUserChannel.receive()
-                        println("Sent -  ${value.userName}")
-                        connections.forEach {
-                            it.session.send(Frame.Text(Gson().toJson(value)))
-                        }
-                    }
-                } catch (e: Exception) {
-                    println(e.localizedMessage)
-                } finally {
-                    println("Пользователь $thisConnection вышел")
-                    connections -= thisConnection
+            val thisConnection = Connection(this, call.parameters["tabletName"])
+            connections += thisConnection
+            val value = lastUserChannel.receive()
+            println("Sent -  ${value.userName}")
+
+            try {
+                for (frame in incoming) {
+                    frame as? Frame.Text ?: continue
                 }
+            } catch (e: Exception) {
+                println(e.localizedMessage)
+            } finally {
+                println("Пользователь $thisConnection вышел")
+                connections -= thisConnection
+            }
 
         }
 
@@ -86,14 +86,14 @@ fun Application.module(testing: Boolean = false) {
 
 }
 
-class Connection(val session: DefaultWebSocketSession, userName:String?) {
+class Connection(val session: DefaultWebSocketSession, userName: String?) {
     companion object {
         var lastId = AtomicInteger(0)
     }
-    val name = if(userName.isNullOrEmpty()) "user${lastId.getAndIncrement()}" else userName
+
 }
 
 
-data class UserInfo (
-    val userName:String,
+data class UserInfo(
+    val userName: String,
 )
