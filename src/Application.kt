@@ -1,5 +1,6 @@
 package com.palanka.ktor
 
+import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.request.*
@@ -58,7 +59,7 @@ fun Application.module(testing: Boolean = false) {
                 try {
                     val value = lastUserChannel.receive()
                     println("Sent -  ${value.userName}")
-                    send(Frame.Text("${value.userName} , greetings"))
+                    send(Frame.Text(Gson().toJson(value)))
                 }
                 catch (e:Exception){
                     println(e.printStackTrace())
