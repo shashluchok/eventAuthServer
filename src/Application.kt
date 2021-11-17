@@ -58,22 +58,24 @@ fun Application.module(testing: Boolean = false) {
         routing {
             val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
         webSocket("/eventAuth") {
-            println("Tablet connected")
-            send(Frame.Text("Hi from server"))
-            val thisConnection = Connection(this, call.parameters["login"])
-            connections += thisConnection
 
-            while (true) {
+                val thisConnection = Connection(this, call.parameters["tabletName"])
+                connections += thisConnection
                 try {
-                    val value = lastUserChannel.receive()
-                    println("Sent -  ${value.userName}")
-                    send(Frame.Text(Gson().toJson(value)))
+                    for (frame in incoming) {
+                        frame as? Frame.Text ?: continue
+                        val value = lastUserChannel.receive()
+                        println("Sent -  ${value.userName}")
+                        connections.forEach {
+                            it.session.send(Frame.Text(Gson().toJson(value)))
+                        }
+                    }
+                } catch (e: Exception) {
+                    println(e.localizedMessage)
+                } finally {
+                    println("Пользователь $thisConnection вышел")
+                    connections -= thisConnection
                 }
-                catch (e:Exception){
-                    println(e.printStackTrace())
-                }
-
-            }
 
         }
 
