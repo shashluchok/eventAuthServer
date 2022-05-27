@@ -24,7 +24,6 @@ import kotlin.collections.LinkedHashSet
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-
 @ExperimentalCoroutinesApi
 @Suppress("unused")
 @kotlin.jvm.JvmOverloads
